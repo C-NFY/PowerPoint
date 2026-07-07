@@ -489,7 +489,7 @@ local Toggle = main:CreateToggle({
 	end,
 })
 
-local Toggle = misc:CreateToggle({
+local Toggle = main:CreateToggle({
 	Name = "TP Walk",
 	CurrentValue = false,
 	Flag = "TPW",
@@ -508,7 +508,7 @@ local Toggle = misc:CreateToggle({
 	end,
 })
 
-local Slider = misc:CreateSlider({
+local Slider = main:CreateSlider({
 	Name = "TP Walk Speed",
 	Range = {0, 40},
 	Increment = 1,
@@ -517,13 +517,6 @@ local Slider = misc:CreateSlider({
 	Flag = "Slider1",
 	Callback = function(Value)
 		TPWS = Value
-	end,
-})
-
-local Button = extra:CreateButton({
-	Name = "Infinite Yield",
-	Callback = function()
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
 	end,
 })
 
@@ -536,4 +529,11 @@ local Keybind = main:CreateKeybind({
        Vision = not Vision
        toggleVision()
    end,
+})
+
+local Button = main:CreateButton({
+	Name = "Infinite Yield",
+	Callback = function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+	end,
 })
