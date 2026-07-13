@@ -1,0 +1,241 @@
+--==============================
+-- Services
+--==============================
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local lplr = Players.LocalPlayer
+local character = lplr.Character or lplr.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local hrp = character:WaitForChild("HumanoidRootPart")
+local plrgui = lplr:WaitForChild("PlayerGui")
+
+local ls = lplr:FindFirstChild("leaderstats")
+
+local ScriptInjector = lplr:FindFirstChild("ScriptInjector")
+
+if ScriptInjector then
+    warn("Auto is already injected")
+    return
+else
+    local int = Instance.new("BoolValue")
+    int.Name = "ScriptInjector"
+    int.Value = true
+    int.Parent = lplr
+end
+
+--==============================
+-- Location
+--==============================
+
+local tycoon = workspace:FindFirstChild("Tycoons")
+
+local mainframe = plrgui:FindFirstChild("MainUI"):FindFirstChild("Frames")
+local rebframe = mainframe:findFirstChild("Rebirth"):FindFirstChild("Main"):FindFirstChild("Content")
+
+local rebreq = rebframe:FindFirstChild("LeftItems"):FindFirstChild("RequirementFrame")
+local text = rebreq:FindFirstChild("RequirementText")
+local current, max = text.Text:match("(%d+)%s*/%s*(%d+)")
+
+local rebirthbutton = rebframe:FindFirstChild("Rebirth")
+
+
+--==============================
+-- Data list
+--==============================
+
+local m = ls:FindFirstChild("Money")
+local r = ls:FindFirstChild("Rebirths")
+
+local blist = {
+	Money = {},
+	Rebrith = {}
+}
+
+--==============================
+-- Data location
+--==============================
+
+local myplot = nil
+local buttons = nil
+local collect = nil
+
+--==============================
+-- Teleport
+--==============================
+local function tplocation(position)
+	hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0))
+end
+
+--==============================
+-- UI Click
+--==============================
+local function uipressed(instance)
+	for _, connection in ipairs(getconnections(instance.MouseButton1Click)) do
+		connection.Function()
+	end
+end
+
+--==============================
+-- Button Touch
+--==============================
+local function touchpart(tpart)
+	firetouchinterest(hrp, tpart, 1)
+	firetouchinterest(hrp, tpart, 0)
+end
+
+--==============================
+-- Button Touch Part
+--==============================
+local function findtpart(part)
+	for _,child in ipairs(part:GetChildren()) do
+		if child:FindFirstChild("TouchInterest") then
+			return true, child
+		end
+	end
+end
+
+--==============================
+-- Button Listing
+--==============================
+local function buttonlister()
+	blist = {
+		Money = {},
+		Rebrith = {}
+	}
+	if buttons then
+		for _,buts in pairs(buttons:GetChildren()) do
+			local vbutton = buts:FindFirstChild("IsButtonVisible")
+			if vbutton.Value == true then
+				if buts:FindFirstChild("RebirthPrice") then
+					table.insert(blist.Rebrith,{
+						Price = buts:FindFirstChild("RebirthPrice").Value,
+						Button = buts:FindFirstChild("Button")
+					})
+				elseif buts:FindFirstChild("Price") then
+					table.insert(blist.Money,{
+						Price = buts:FindFirstChild("Price").Value,
+						Button = buts:FindFirstChild("Button")
+					})					
+				end
+			end
+		end
+	end
+	table.sort(blist.Money, function(a, b)
+		return a.Price < b.Price
+	end)
+
+	table.sort(blist.Rebrith, function(a, b)
+		return a.Price < b.Price
+	end)
+end
+
+--==============================
+-- Inititiate 
+--==============================
+local function initlocator()
+	if myplot then
+		local b = myplot:FindFirstChild("Buttons")
+		if b then
+			buttons = b
+		end
+		local c = myplot:FindFirstChild("Build"):FindFirstChild("Collect")
+		if c then
+			collect = c
+		end
+	end
+end
+
+--==============================
+-- Find Tycoon
+--==============================
+local function findmy()
+	for _,plot in pairs(tycoon:GetChildren()) do
+		local owner = plot:FindFirstChild("Owner")
+		if owner.Value == lplr then
+			myplot = plot
+			initlocator()
+		end
+	end
+end
+
+--==============================
+-- Find Tycoon
+--==============================
+local function checkRebirth()
+
+	local playerMoney = r.Value
+
+	for _, data in ipairs(blist.Rebrith) do
+
+		if playerMoney >= data.Price then
+
+			local button = data.Button
+			local success, part = findtpart(button)
+
+			if	success then
+				touchpart(part)
+			end
+		end
+	end
+end
+local function checkMoney()
+
+	local playerMoney = m.Value
+
+	for _, data in ipairs(blist.Money) do
+
+		if playerMoney >= data.Price then
+
+			local button = data.Button
+			local success, part = findtpart(button)
+
+			if	success then
+				touchpart(part)
+			end
+		end
+	end
+end
+
+if myplot == nil then
+	findmy()
+end
+
+if myplot then
+	buttonlister()
+end
+
+m:GetPropertyChangedSignal("Value"):Connect(function()
+    
+	if current and max then
+		if tonumber(current) >= tonumber(max) then
+			uipressed(rebirthbutton)
+		end
+	end
+	buttonlister()
+	checkMoney()
+	checkRebirth()
+end)
+
+while true do
+	if collect then
+		local success, part = findtpart(collect)
+		if	success then
+			touchpart(part)
+		end
+	end
+	task.wait(0.5)
+end
+--[[
+	warn("--====+ Money +===--")
+	for _,i in ipairs(blist.Money) do
+		warn("Money",i.Price,i.Button)
+	end
+	warn("--================--")
+	warn("--====+ Rebirth +===--")
+	for _,i in ipairs(blist.Rebrith) do
+		warn("Rebirht",i.Price,i.Button)
+	end
+	warn("--================--")
+]]
